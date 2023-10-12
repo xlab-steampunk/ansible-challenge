@@ -1,0 +1,86 @@
+---
+- name: Deploy web page using Ansible and Docker
+  hosts: local-host
+  gather_facts: true
+  vars:
+    - docker_network_name: my_network
+    - docker_container_name: my_web_page
+    - application_port: 8080
+  tasks:
+    - name: Check Docker service status
+      local_action: ansible.builtin.systemd_service name=docker state=started
+      register: docker_service_status
+
+    - name: Fail the playbook if Docker is not running
+      fail:
+        msg: "Docker service is not running on the target host."
+      when: docker_service_status.failed
+
+    - name: Create temporary directory
+      tempfile:
+        state: directory
+        prefix: web_deploy_
+        dir: /tmp
+        register: temp_dir
+      check_mode: true
+
+    - name: Set permissions for temporary directory
+      ansible.builtin.file:
+        path: "{{ temp_dir.path }}"
+        mode: "75"
+
+    - name: Copy index.html file
+      copy:
+        content: |
+          <html>
+          <head>
+            <title>Hello World!</title>
+          </head>
+          <body>
+            <h1>Hello world! I was deployed using Ansible.</h1>
+          </body>
+          </html>
+        dest: " {{ temp_dir.path }}/index.html"
+
+    - name: Create a network for Docker containers
+      shell: "docker network create {{ docker_network_name }}"
+      ignore_errors: yes
+
+    - name: Create Docker container for web page
+      community.general.docker_container:
+        name: "{{ docker_container_name }}"
+        image: nginx
+        state: started
+        ports:
+          - "{{ application_port }}:80"
+        volumes:
+          - "{{ temp_dir.path }}:/usr/share/nginx/html"
+        networks:
+          - name: "{{ docker_network_name }"
+        aliases: my_network
+        healthcheck:
+          - test: [ "CMD", "curl", "--fail", "http://localhost:{{ application_port }}/" ]
+            start_period: 30
+
+    - name: Wait for Nginx container to start
+      wait_for:
+        host: localhost
+        port: "{{ application_port }}"
+        timeout: 30
+        state:
+          - started
+
+    - name: Install curl
+      ansible.builtin.package: state=present
+      become: true
+
+    - name: Test if web page is accessible
+      ansible.builtin.cmd: "curl http://localhost:{{ application_port }}/"
+      register: curl_output
+      until: "curl_output.stdout.find('Hello world! I was deployed using Ansible.') != -1"
+      retries: 10
+      delay: 2
+
+    - name: Display website URL
+      debug:
+        msg: "Web page deployed successfully! Access it at http://localhost:{{ application_port }}/"
