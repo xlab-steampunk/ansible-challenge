@@ -1,0 +1,9 @@
+---
+docker_data_dir: /var/lib/docker/
+
+# these are the default address pools that create Docker networks
+address_pools:
+  - base: 172.17.0.0/12
+    size: 16
+  - base: 192.168.0.0/16
+    size: 20

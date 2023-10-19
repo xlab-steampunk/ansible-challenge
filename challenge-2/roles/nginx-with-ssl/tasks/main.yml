@@ -1,0 +1,80 @@
+---
+- name: Install nginx and prerequisites
+  package:
+    name:
+      - nginx
+      # prerequisite for installing openssl_* module prerequisites
+      - python-pip
+    state: present
+
+- name: Install Ansible module prerequisites
+  pip:
+    name:
+      - pyopenssl==18.0.0
+      # python2.7 compat, https://github.com/pyca/pyopenssl/commit/e73818600065821d588af475b024f4eb518c3509#commitcomment-30881820
+      - cryptography<3.4,>=2.1.4
+      - certifi<=2020.4.5.1
+    state: present
+
+- name: Generate dhparams
+  shell: openssl dhparam -out /etc/nginx/dhparams.pem 1024
+  args:
+    creates: /etc/nginx/dhparams.pem
+  register: dhparams
+
+- name: Generate a private key
+  openssl_privatekey:
+    path: &privkey_path /etc/nginx/ssl-nginx.key
+    size: 2048
+
+- name: Create a CSR
+  openssl_csr:
+    path: &csr_path /etc/nginx/ssl-nginx.csr
+    privatekey_path: *privkey_path
+    commonName: "{{ ansible_hostname }}"
+
+- name: Generate a Self Signed OpenSSL certificate
+  openssl_certificate:
+    path: &cert_path /etc/nginx/ssl-nginx.crt
+    provider: selfsigned
+    privatekey_path: *privkey_path
+    csr_path: *csr_path
+
+- name: Ensure that the server certificate is valid after one year - fail if it will expire
+  openssl_certificate:
+    path: *cert_path
+    provider: assertonly
+    valid_in: 31536000
+
+- name: Template out the nginx config file
+  template:
+    src: "nginx-{{ ansible_distribution }}.conf"
+    dest: /etc/nginx/nginx.conf
+    mode: u=rw,g=rw,o=r
+  register: nginx_config
+
+- name: Template out the nginx server file
+  template:
+    src: "server.conf"
+    dest: /etc/nginx/conf.d/server.conf
+  register: nginx_server
+
+- name: Enable nginx
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Start nginx
+  service:
+    name: nginx
+    state: started
+  register: nginx_started
+
+- name: Restart nginx if necessary
+  service:
+    name: nginx
+    state: restarted
+  when:
+    - dhparams is changed or nginx_config is changed or nginx_server is changed
+    - nginx_started is not changed

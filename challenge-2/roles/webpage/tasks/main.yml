@@ -1,0 +1,48 @@
+---
+- name: Create the destination directory
+  file:
+    path: /tmp/dockerbuild/
+    state: directory
+    follow: false
+
+- name: Install docker-py
+  pip:
+    name:
+      - docker-py
+      # anachronism: python2.7 compat
+      - requests<2.28
+      - websocket-client<1.0.0
+    state: present
+    editable: false
+
+- name: Copy over build files
+  template:
+    src: "{{ item }}"
+    dest: /tmp/dockerbuild/
+  with_items:
+    - Dockerfile
+    - index.html
+
+- name: Build the image
+  docker_image:
+    name: local/webpage
+    path: /tmp/dockerbuild/
+    state: build
+    force: true
+  register: image_build
+
+- name: Run the container
+  docker_container: &container_args
+    name: webpage
+    image: local/webpage
+    ports:
+      - 127.0.0.1:12345:80
+    state: started
+    restart_policy: always
+  register: container_start
+
+- name: Restart the container if necessary
+  docker_container:
+    <<: *container_args
+    state: restarted
+  when: image_build is changed and container_start is not changed

@@ -1,0 +1,15 @@
+# assuming python 2.7.15, released on 2018-05-01
+# not using ansible==2.4.6.0 (2018-07-05) because of an incorrect assertion in openssl_csr: https://github.com/ansible/ansible/issues/33263
+ansible==2.4.0.0      # 2017-09-19
+ansible-lint==3.4.21  # 2018-03-13
+
+# limit versions for py2.7 compatibility
+cryptography<3.4
+MarkupSafe<2
+bcrypt<3.2.0
+pynacl<1.5.0
+Jinja2<3
+pyyaml<6
+
+# compat for ansible-lint
+setuptools<45

@@ -1,0 +1,9 @@
+---
+all:
+  hosts:
+    worker-centos:
+      ansible_host: worker_centos
+      ansible_ssh_user: root
+    worker-debian:
+      ansible_host: worker_debian
+      ansible_ssh_user: root

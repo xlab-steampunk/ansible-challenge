@@ -1,0 +1,8 @@
+---
+- hosts: all
+  sudo: true
+  roles:
+    - system
+    - nginx-with-ssl
+    - docker
+    - webpage

@@ -1,0 +1,9 @@
+---
+packages:
+  - vim
+  - curl
+  - wget
+  - htop
+  - firewalld
+  # ansible module requirement
+  - python-firewall
