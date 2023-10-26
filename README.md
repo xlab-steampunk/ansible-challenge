@@ -4,7 +4,7 @@ A series of challenges for the [Steampunk Ansible Challenge] competition.
 | Question |                     Key information                      |
 |----------|:--------------------------------------------------------:|
 | What     |              Ansible Challenge competition               |
-| When     |              October 12 - November 16, 2023              |
+| When     |              October 12 - November 30, 2023              |
 | Who      |  Open to all Ansible enthusiasts and automation wizards  |
 | Why      |   To enhance Ansible skills and demonstrate expertise    |
 | Where    |   Register at https://steampunk.si/ansible-challenge/    |
@@ -55,10 +55,10 @@ The following dates and hours are set for the five challenges to start:
 - 1st challenge: October 12 at 16:00 CEST
 - 2nd challenge: October 19 at 16:00 CEST
 - 3rd challenge: October 26 at 16:00 CEST
-- 4th challenge: November 2 at 16:00 CET
-- 5th challenge: November 9 at 16:00 CET
+- 4th challenge: November 9 at 16:00 CET
+- 5th challenge: November 23 at 16:00 CET
 
-The competition concludes on November 16 at 16:00 CET, when the grand winner
+The competition concludes on November 30 at 16:00 CET, when the grand winner
 will be announced.
 The solutions for challenges will be available within the `solutions` branch
 of this repository.
