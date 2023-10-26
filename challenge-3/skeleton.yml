@@ -1,0 +1,66 @@
+---
+- name: Spin up VM
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Create security group
+      amazon.aws.ec2_security_group:
+
+    - name: Launch EC2 instance
+      amazon.aws.ec2_instance:
+      # Your AWS key pair name is Ubuntu_key
+    - name: Add VM as a host to VM_instance group
+      ansible.builtin.add_host:
+        groups: VM_instance
+
+    - name: Wait for SSH to come up
+      ansible.builtin.wait_for:
+        host: "{{ item }}"
+        state: started
+      loop: "{{ groups['VM_instance'] }}"
+
+- name: Spin up samba
+  hosts: VM_instance
+  gather_facts: false
+  tasks:
+    - name: System up-to date
+      ansible.builtin.apt:
+
+    - name: Install Samba
+      ansible.builtin.apt:
+
+    - name: Remove Unnecessary Services
+      ansible.builtin.apt:
+
+    - name: Ensure the SAMBA user exists
+      ansible.builtin.user:
+
+    - name: Create a Samba shared directory
+      ansible.builtin.file:
+
+    - name: Configure Samba
+      ansible.builtin.template:
+
+    - name: Restart Samba
+      ansible.builtin.service:
+
+    - name: Banner sshd config
+      ansible.builtin.lineinfile:
+
+    - name: banner-message-text
+      ansible.builtin.lineinfile:
+
+    - name: Restart ssh
+      ansible.builtin.service:
+
+    - name: Ensure NTP package is installed
+      ansible.builtin.package:
+
+    - name: Disable chrony if it is running but ntp is enabled
+      ansible.builtin.service:
+
+    - name: Ensure IPv6 status /Checking IPv6 module status
+      ansible.builtin.iptables:
+
+    - name: Install AIDE
+      ansible.builtin.package:
