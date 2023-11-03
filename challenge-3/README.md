@@ -168,3 +168,5 @@ pip install ansible==8.4.0
 
 ## Tips
 Carefully read the rule descriptions to find the useful tips.
+
+[Steampunk Ansible Challenge]: https://steampunk.si/ansible-challenge/
