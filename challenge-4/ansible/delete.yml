@@ -1,0 +1,15 @@
+---
+- name: Cleanup an OpenStack VM by calling Terraform from Ansible
+  hosts: localhost
+  vars_files:
+    - vars.yml
+  tasks:
+    # Run the equivalent of the 'terraform destroy' command.
+    # Use and specify variables originating from vars.yml (also be careful keep them out of any logs).
+    # Save the task output to the terraform_result variable.
+    - name: Destroy all remote objects managed by Terraform configuration
+      cloud.terraform.terraform:
+
+    # Check that Terraform output value holding the IP address is not defined anymore.
+    - name: Assert that Terraform output value is undefined
+      ansible.builtin.assert:

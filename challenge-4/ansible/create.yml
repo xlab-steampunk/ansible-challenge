@@ -1,0 +1,62 @@
+---
+- name: Provision an OpenStack VM by calling Terraform from Ansible
+  hosts: localhost
+  vars_files:
+    - vars.yml
+  tasks:
+    # Run the equivalent of the 'terraform init && terraform plan' command.
+    # Use and specify variables originating from vars.yml (also be careful keep them out of any logs).
+    - name: Test creation of an execution plan for Terraform
+      cloud.terraform.terraform:
+
+    # Run the equivalent of the 'terraform apply' command.
+    # Use and specify variables originating from vars.yml (also be careful keep them out of any logs).
+    # Save the task output to the terraform_result variable.
+    - name: Create and execute Terraform plan
+      cloud.terraform.terraform:
+
+    # Check that Terraform output value holding the IP address is defined.
+    - name: Assert that Terraform output value is defined
+      ansible.builtin.assert:
+
+  post_tasks:
+    # Create a temporary inventory with the 'vm' hostname and add it to the 'vms' group.
+    # Also set the necessary parameters for host, user, and private SSH key file.
+    # Keep the ansible_ssh_common_args as it is.
+    - name: Create in-memory inventory for the VM
+      ansible.builtin.add_host:
+        ansible_ssh_common_args: >
+          -o IdentitiesOnly=yes
+          -o BatchMode=yes
+          -o UserKnownHostsFile=/dev/null
+          -o StrictHostKeyChecking=no
+
+- name: Configure an OpenStack VM using Ansible
+  hosts: vms
+  gather_facts: false
+  vars_files:
+    - vars.yml
+  pre_tasks:
+    # Wait for SSH to wake up.
+    # Start polling after 10s, sleep for 5s between checks, and wait for the maximum of 120s.
+    - name: Waits until remote VM is usable
+      ansible.builtin.wait_for_connection:
+  tasks:
+    - name: A configuration block for the web server
+      block:
+        # Run the equivalent of the 'sudo apt update && sudo apt install apache2' command.
+        - name: Install Apache
+          ansible.builtin.apt:
+
+        # Run the equivalent of the 'sudo service apache2 start' command.
+        - name: Start Apache service
+          ansible.builtin.service:
+
+        # Copy web page files to a remote location (i.e., /var/www/html/index.html).
+        # This task should also notify the 'Restart Apache service' handler.
+        - name: Copy website files
+          ansible.builtin.copy:
+  handlers:
+    # Run the equivalent of the 'sudo service apache2 restart' command.
+    - name: Restart Apache service
+      ansible.builtin.service:

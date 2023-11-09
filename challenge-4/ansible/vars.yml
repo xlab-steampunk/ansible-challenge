@@ -1,0 +1,10 @@
+---
+tf_project_path: "terraform/"
+vm_name: "web-server-host"
+vm_image_name: "ubuntu-22.04"
+vm_flavor_name: "small"
+vm_key_pair: "key-pair-name"
+vm_security_group: "my-group"
+vm_network: "ostack2"
+vm_ssh_key_file: "/home/user/.ssh/openstack.key"
+vm_ssh_user: "ubuntu"
