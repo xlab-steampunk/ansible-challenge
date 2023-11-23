@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Checkmaster Juma",
+    "age": 56,
+    "color": "Black",
+    "location": "Hidden Bamboo Village",
+    "status": "Unknown"
+  },
+  {
+    "name": "Sinah the Silent Lotus",
+    "age": 16,
+    "color": "Black",
+    "location": "Whispering Pine Dojo",
+    "status": "Unknown"
+  },
+  {
+    "name": "Captain Luke Gigglesmash",
+    "age": 41,
+    "color": "Blue",
+    "location": "Laughing Waterfalls Hideout",
+    "status": "Juggling ninja stars for entertainment"
+  },
+  {
+    "name": "Amy Venomstrike",
+    "age": 18,
+    "color": "Red",
+    "location": "Serpents Lair",
+    "status": "Spying on pirates with a giggling disguise"
+  },
+  {
+    "name": "Aziz the Great",
+    "age": 35,
+    "color": "Blue",
+    "location": "Thunderclap Summit",
+    "status": "Attacking Banana Dojo"
+  },
+  {
+    "name": "Chuck Norrisuki",
+    "age": 10,
+    "color": "Yellow",
+    "location": "Roaring Tiger Temple",
+    "status": "Eating ice cream with a serious face"
+  },
+  {
+    "name": "Akai Snickerdoodle Shinobi",
+    "age": 19,
+    "color": "Yellow",
+    "location": "Giggling Gorge Hideaway",
+    "status": "Spying on enemies"
+  },
+  {
+    "name": "Mister Krister",
+    "age": 22,
+    "color": "Brown",
+    "location": "Ninjatropolis",
+    "status": "Mowing the lawn"
+  },
+  {
+    "name": "San Sashoon Shuriken",
+    "age": 72,
+    "color": "Black",
+    "location": "Chuckling Cherry Blossom Grove",
+    "status": "Attacking the bridge"
+  },
+  {
+    "name": "Tokugawa Guffaw Watermelonian",
+    "age": 42,
+    "color": "Green",
+    "location": "Ninjatropolis",
+    "status": "Feeding pigs with watermelons"
+  }
+]

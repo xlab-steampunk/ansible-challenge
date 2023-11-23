@@ -1,0 +1,74 @@
+groups:
+  Black:
+    count: 3
+    min_age: 16
+    max_age: 72
+    average_age: 48.0
+    subgroups:
+      Attacking the bridge:
+        count: 1
+        ninjas:
+          - San Sashoon Shuriken
+      Unknown:
+        count: 2
+        ninjas:
+          - Checkmaster Juma
+          - Sinah the Silent Lotus
+  Blue:
+    count: 2
+    min_age: 35
+    max_age: 41
+    average_age: 38.0
+    subgroups:
+      Attacking Banana Dojo:
+        count: 1
+        ninjas:
+          - Aziz the Great
+      Juggling ninja stars for entertainment:
+        count: 1
+        ninjas:
+          - Captain Luke Gigglesmash
+  Brown:
+    count: 1
+    min_age: 22
+    max_age: 22
+    average_age: 22.0
+    subgroups:
+      Mowing the lawn:
+        count: 1
+        ninjas:
+          - Mister Krister
+  Green:
+    count: 1
+    min_age: 42
+    max_age: 42
+    average_age: 42.0
+    subgroups:
+      Feeding pigs with watermelons:
+        count: 1
+        ninjas:
+          - Tokugawa Guffaw Watermelonian
+  Red:
+    count: 1
+    min_age: 18
+    max_age: 18
+    average_age: 18.0
+    subgroups:
+      Spying on pirates with a giggling disguise:
+        count: 1
+        ninjas:
+          - Amy Venomstrike
+  Yellow:
+    count: 2
+    min_age: 10
+    max_age: 19
+    average_age: 14.5
+    subgroups:
+      Eating ice cream with a serious face:
+        count: 1
+        ninjas:
+          - Chuck Norrisuki
+      Spying on enemies:
+        count: 1
+        ninjas:
+          - Akai Snickerdoodle Shinobi
