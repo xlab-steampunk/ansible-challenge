@@ -1,80 +1,110 @@
 ---
-- name: Prepare and send reports to ninja masters
+- name: Prepare and send reports to Ninja masters
   hosts: localhost
   vars:
     ninjas: "{{ lookup('file','data.json') | from_json }}"
     datetime: "{{ ansible_date_time.iso8601 }}"
-    mode_directory: "0777"
-    mode_file: "0644"
-  # The next section needs to be restructured and optimized, so that we don't have a block for every ninja master.
-  # There is a requirement that tasks are organized into the following stages (with corresponding tasks for each stage):
-  # - Preparation:
-  #   - 'Print datetime and initial data' (task)
-  #   - 'Create global directory for reports' (task)
-  # - Setting all facts:
-  #   - 'Prepare reports for master X' (task for each)
-  # - Storing all report contents:
-  #   - 'Save reports for Ninja masters' (task)
-  # - Sending all reports (currently all in check mode for testing the data export first):
-  #   - 'Send reports to Ninja masters' (block of tasks)
-  #     - 'Send an e-mail to Grandninja Lotus using Gmail SMTP servers' (task)
-  #     - 'Upload a CSV report to Azure Container for Sensei Shadowstrike' (task)
-  #     - 'Publish a report to RabbitMQ queue for Hanzo Katanzo' (task)
-  #     - 'Upload a YAML report to Google Storage Bucket for Jokemaster Noodle Nunchuck' (task)
-  #     - 'Upload a text report to AWS S3 Bucket for Chuck Norrisuki' (task)
   tasks:
     - name: Print datetime and initial data
       ansible.builtin.debug:
         msg:
-          - "{{datetime }}"
-          - "{{ ninjas }"
+          - "{{ datetime }}"
+          - "{{ ninjas }}"
 
     - name: Create global directory for reports
       ansible.builtin.file:
         state: directory
         path: "{{ datetime }}"
-        mode: "{{ mode_directory | default(0777) }}"
+        mode: "0777"
 
-    - name: Prepare and send report to Grandninja Lotus
+    - name: Prepare reports for all masters
+      ansible.builtin.set_fact:
+        grandninja_lotus_report: |
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Age</th>
+              <th>Color</th>
+              <th>Location</th>
+              <th>Status</th>
+            </tr>
+            {% for ninja in ninjas %}
+              <tr>
+                <td>{{ ninja['name'] }}</td>
+                <td>{{ ninja['age'] }}</td>
+                <td>{{ ninja['color'] }}</td>
+                <td>{{ ninja['location'] }}</td>
+                <td>{{ ninja['status'] }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        sensei_shadowstrike_report: |
+          {% set filtered_ninjas = ninjas | selectattr('age', '>', 18) | selectattr('location', 'equalto', 'Ninjatropolis') %}
+          Name,Age,Color,Location,Status
+          {% for ninja in filtered_ninjas %}
+          {{ ninja.name }},{{ ninja.age }},{{ ninja.color }},{{ ninja.location }},{{ ninja.status }}
+          {% endfor %}
+        hanzo_katanzo_report: "{{ (ninjas | last).name | lower }}"
+        jokemaster_noodle_nunchuck_report: |
+          groups:
+          {% for color, color_group in ninjas | groupby('color') %}
+            {{ color }}:
+              count: {{ color_group | length }}
+              min_age: {{ color_group | map(attribute='age') | min }}
+              max_age: {{ color_group | map(attribute='age') | max }}
+              average_age: {{ color_group | map(attribute='age') | sum / color_group | length | round(2) }}
+              subgroups:
+          {%    for status, status_group in color_group | groupby('status') %}
+                {{ status }}:
+                  count: {{ status_group | length }}
+                  ninjas:
+          {%        for ninja in status_group %}
+                    - "{{ ninja.name }}"
+          {%        endfor %}
+          {%    endfor %}
+          {% endfor %}
+        chuck_norrisuki_report: |
+          {%- macro factorial(n, return_value=1) -%}
+            {%- if n > 1 -%}
+              {%- set return_value = n * return_value -%}
+              {{- factorial(n-1,return_value) -}}
+            {%- else -%}
+              {{ return_value }}
+            {%- endif -%}
+          {%- endmacro -%}
+
+          {% for ninja in ninjas %}
+          {%   if ninja.age is odd %}
+          {{     ninja.name.split()[0] | upper | reverse }}: {{ factorial(ninja.age) }}
+          {%   endif %}
+          {% endfor %}
+
+    - name: Save reports for Ninja masters
+      ansible.builtin.copy:
+        content: "{{ item.report_content }}"
+        dest: "{{ datetime }}/{{ item.report_name }}"
+        mode: "0644"
+      loop:
+        - report_content: "{{ grandninja_lotus_report }}"
+          report_name: "grandninja_lotus_report.html"
+        - report_content: "{{ sensei_shadowstrike_report }}"
+          report_name: "sensei_shadowstrike_report.csv"
+        - report_content: "{{ hanzo_katanzo_report }}"
+          report_name: "hanzo_katanzo_report.txt"
+        - report_content: "{{ jokemaster_noodle_nunchuck_report }}"
+          report_name: "jokemaster_noodle_nunchuck_report.yml"
+        - report_content: "{{ chuck_norrisuki_report }}"
+          report_name: "chuck_norrisuki_report.txt"
+
+    - name: Send reports to Ninja masters
+      check_mode: true
+      no_log: true
+      ignore_errors: true
       block:
-        - name: Prepare report for Grandninja Lotus
-          ansible.builtin.set_fact:
-            # Grandninja Lotus expects an HTML report of all the ninjas.
-            # An example report content is available in 2023-11-23T12:14:47Z/grandninja_lotus_report.html.
-            grandninja_lotus_report: |
-              <table>
-                <tr>
-                  <th>Name</th>
-                  <th>Age</th>
-                  <th>Color</th>
-                  <th>Location</th>
-                  <th>Status</th>
-                {{ for ninja in ninjas }}
-                    <td>{{ ninja.'name' }}</td>
-                    <td>{{ ninja.'age' }}
-                    <td>{{ ninja.'color' }}</td>
-                    <td>{{ ninja.'location' }}</td>
-                    <td>{{ ninja.'status'] }}</td>
-                  </tr>
-                {$ endfor $}
-              </table>
-
-        - name: Save reports for Ninja masters
-          ansible.builtin.copy:
-            content: "{{ item.report_content }}"
-            dest: "{{ datetime }}/{{ item.report_name }}"
-            mode: "{{ mode_file }}"
-          loop:
-            # TODO: I am too lazy to find the others and use same pattern all over
-            - report_content: "{{ grandninja_lotus_report }}"
-              report_name: "grandninja_lotus_report.html"
-
-        # Use Gmail SMTP server.
-        # Username is set to 'ninjas@example.com' and marked with unsafe data type (leave it as it is).
-        # Password is provided through Ansible Vault (leave it as it is).
-        # Be careful to hide logs and to run in check mode.
         - name: Send an e-mail to Grandninja Lotus using Gmail SMTP servers
           community.general.mail:
+            host: smtp.gmail.com
+            port: 587
             username: !unsafe "ninjas@example.com"
             password: !vault |
               $ANSIBLE_VAULT;1.1;AES256
@@ -82,127 +112,38 @@
               6265303235653865386230663031623738336335353138640a303732373938633038393965653662
               34643365613836646130646461616366633861363462613938356565396130613038373736643437
               3132336262323966390a306438656436326363623839376339643962333830343730623530643231
-            recipients: Grandninja Lotus <grandninja.lotus@example.com>
-            msg: Ansible-Ninja-Status-Weekly-Report
+            to: Grandninja Lotus <grandninja.lotus@example.com>
+            subject: Ansible-Ninja-Status-Weekly-Report
             body: "{{ grandninja_lotus_report }}"
-          no_log: true
-          check_mode: true
 
-    - name: Prepare and send report to Sensei Shadowstrike
-      block:
-        - name: Prepare report for Sensei Shadowstrike
-          ansible.builtin.set_fact:
-            # Sensei Shadowstrike expects a CSV report of all ninjas older than 18 that are located in Ninjatropolis.
-            # An example report content is available in 2023-11-23T12:14:47Z/sensei_shadowstrike_report.csv.
-            sensei_shadowstrike_report: |
-              {% filtered_ninjas := ninjas | selectattr('age', '>', 18) & selectattr('location', 'equalto', 'Ninjatropolis') %}
-              Name,Age,Color,Location,Status
-              {% foreach ninja in filtered_ninjas %}
-              {{ ninja.name }},{{ ninja.age }},{{ ninja.color }},{{ ninja.location }},{{ ninja.status }}
-              {% endforeach %}
-
-        # Use 'LotusResourceGroup' resource group, 'LotusStorageAccount' storage account and 'ninjas' Azure container.
-        # Consider that you are already authenticated to Microsoft Azure via Azure CLI.
-        # Be careful to hide logs and to run in check mode.
         - name: Upload a CSV report to Azure Container for Sensei Shadowstrike
           azure.azcollection.azure_rm_storageblob:
-            blob_name: "{{ datetime }}.csv"
+            resource_group: LotusResourceGroup
+            storage_account_name: LotusStorageAccount
+            container: ninjas
+            blob: "{{ datetime }}.csv"
             src: "{{ datetime }}/sensei_shadowstrike_report.csv"
             content_type: "text/csv"
-            no_log: true
-          check_mode: true
 
-    - name: Prepare and send data to Hanzo Katanzo
-      block:
-        - name: Prepare data for Hanzo Katanzo
-          ansible.builtin.set_fact:
-            # Hanzo Katanzo wants to pick the last ninja from the list and return his/her full name in lowercase.
-            # An example report content is available in 2023-11-23T12:14:47Z/hanzo_katanzo_report.txt.
-            hanzo_katanzo_report: "{{ ... }}"
-
-        # Use 'ninjas' exchange and 'amqp://h:k@192.168.0.32:5672/%2F' as URL.
-        # Be careful to hide logs and to run in check mode.
         - name: Publish a report to RabbitMQ queue for Hanzo Katanzo
           community.rabbitmq.rabbitmq_publish:
+            exchange: ninjas
             url: "amqp://h:k@192.168.0.32:5672/%2F"
             body: "{{ hanzo_katanzo_report }}"
             content_type: "text/plain"
-            check_mode: true
-          no_log: true
 
-    - name: Prepare and send report to Jokemaster Noodle Nunchuck
-      block:
-        - name: Prepare report for Jokemaster Noodle Nunchuck
-          ansible.builtin.set_fact:
-            # Jokemaster Noodle Nunchuck expects a YAML report of all groups of ninjas by their suit color.
-            # For every group a count of all ninjas, minimum, maximum and average age need to be calculated.
-            # Every group should have subgroups based on the ninja status with the count of all ninja and their names.
-            # An example report content is available in 2023-11-23T12:14:47Z/jokemaster_noodle_nunchuck_report.yml.
-            jokemaster_noodle_nunchuck_report: |
-              groups:
-              {% for color, color_group in ninjas | groupby('color') %}
-                {{ color }}:
-                  count: {{ color_group || len }}
-                  min_age: {{ color_group | map(attribute='age') | min }
-                  max_age: {{ ... }}
-                  average_age: {{ color_group | map(attribute='age') | sum \ color_group | len | round(2) }}
-                  subgroups:
-                    {% for status status_group of color_group | groupby('status') %}
-                      {{ status }}:
-                        count: {{ ... }}
-                        ninjas:
-                          {{ ... }}
-                    {% endfor %}
-              {% endfor %}
-
-        # Use 'jokemaster_project' project and 'ninjas' storage bucket.
-        # Consider that you are already authenticated to Google Cloud Platform.
-        # Be careful to hide logs and to run in check mode.
         - name: Upload a YAML report to Google Storage Bucket for Jokemaster Noodle Nunchuck
           google.cloud.gcp_storage_object:
             action: upload
+            bucket: ninjas
             src: "{{ datetime }}/jokemaster_noodle_nunchuck_report.yml"
             dest: "{{ datetime }}.yml"
+            project: jokemaster_project
             auth_kind: serviceaccount
-          action: upload
-          no_log: true
-          check_mode: true
 
-    - name: Prepare and send data to Chuck Norrisuki
-      block:
-        - name: Prepare data for Chuck Norrisuki
-          ansible.builtin.set_fact:
-            # Chuck Norrisuki expects a text report of all ninjas that are of odd age.
-            # The first names of ninjas should be uppercase and reversed, he also wants a factorial of their age.
-            # An example report content is available in: 2023-11-23T12:14:47Z/chuck_norrisuki_report.txt.
-            #
-            # You will need to write a recursive function that finds a factorial of an integer.
-            # Use the following Python code for help:
-            # def factorial(x):
-            #   if x == 1:
-            #     return 1
-            #   else:
-            #     return (x * factorial(x-1))
-            chuck_norrisuki_report: |
-              {%- def factorial(n, return_value=1) -%}
-              {{ ... }}
-              {%- enddef -%}
-    
-              {% for ninja in ninjas %}
-              {%   if ninja.age is odd %}
-              {{     ninja.name }}: {{ factorial(ninja.age) }}
-              {%   fi %}
-              {% done %}
-
-        # Use 'ninjas' S3 bucket.
-        # Consider that you are already authenticated to Amazon Web Services via AWS CLI.
-        # Be careful to hide logs and to run in check mode.
         - name: Upload a text report to AWS S3 Bucket for Chuck Norrisuki
           amazon.aws.s3_object:
+            bucket: ninjas
             src: "{{ datetime }}/chuck_norrisuki_report.txt"
             object: "{{ datetime }}.txt"
             mode: put
-            force: true
-            aws_region: eu-west-1
-          no_log: true
-          check_mode: true

@@ -1,5 +1,5 @@
 ---
-tf_project_path: "terraform/"
+tf_project_path: "/home/user/Desktop/ansible-challenge/challenge-4/terraform/"
 vm_name: "web-server-host"
 vm_image_name: "ubuntu-22.04"
 vm_flavor_name: "small"

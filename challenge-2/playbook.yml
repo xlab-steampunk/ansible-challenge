@@ -1,6 +1,6 @@
 ---
 - hosts: all
-  sudo: true
+  become: true
   roles:
     - system
     - nginx-with-ssl

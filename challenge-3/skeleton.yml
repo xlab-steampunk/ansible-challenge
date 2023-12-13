@@ -5,18 +5,51 @@
   tasks:
     - name: Create security group
       amazon.aws.ec2_security_group:
+        name: SAMBA
+        region: eu-west-1
+        access_key: "{{ secret }}"
+        secret_key: "{{ secret }}"
+        description: Sec group for SAMBA file server.
+        rules:
+          - proto: tcp
+            cidr_ip: 0.0.0.0/0
+            to_port: 80
+            from_port: 80
+          - proto: tcp
+            cidr_ip: 10.0.0.0/24
+            to_port: 22
+            from_port: 22
+          - proto: tcp
+            cidr_ip: 10.0.0.0/24
+            to_port: 445
+            from_port: 445
+          - proto: tcp
+            cidr_ip: 10.0.0.0/24
+            to_port: 139
+            from_port: 139
 
     - name: Launch EC2 instance
       amazon.aws.ec2_instance:
-      # Your AWS key pair name is Ubuntu_key
+        wait: true
+        region: eu-west-1
+        image_id: ami-0d101c1d6138a1763
+        access_key: "{{ secret }}"
+        purge_tags: false
+        secret_key: "{{ secret }}"
+        security_group: SAMBA
+      register: instance
+
     - name: Add VM as a host to VM_instance group
       ansible.builtin.add_host:
+        name: "{{ instance.instances[0].public_ip_address }}"
         groups: VM_instance
 
     - name: Wait for SSH to come up
       ansible.builtin.wait_for:
         host: "{{ item }}"
+        port: 22
         state: started
+        active_connection_states: ESTABLISHED
       loop: "{{ groups['VM_instance'] }}"
 
 - name: Spin up samba
@@ -24,43 +57,108 @@
   gather_facts: false
   tasks:
     - name: System up-to date
+      become: true
       ansible.builtin.apt:
+        state: present
+        upgrade: safe
+        update_cache: true
 
     - name: Install Samba
+      become: true
       ansible.builtin.apt:
+        state: present
+        package: samba
 
     - name: Remove Unnecessary Services
+      become: true
       ansible.builtin.apt:
+        state: absent
+        package: lpd
+        autoremove: true
 
     - name: Ensure the SAMBA user exists
       ansible.builtin.user:
+        name: samba
+        state: present
 
     - name: Create a Samba shared directory
       ansible.builtin.file:
+        mode: 493
+        path: "/srv/shared"
+        group: samba
+        owner: samba
+        state: directory
+        follow: true
 
     - name: Configure Samba
       ansible.builtin.template:
+        src: "smb.conf.j2"
+        dest: "/etc/samba/smb.conf"
+        mode: 493
+        trim_blocks: false
 
     - name: Restart Samba
+      become: true
       ansible.builtin.service:
+        name: smbd
+        state: restarted
 
     - name: Banner sshd config
+      become: true
       ansible.builtin.lineinfile:
+        line: Banner /etc/issue
+        mode: 448
+        path: "/etc/ssh/sshd_config"
+        insertafter: Banner
 
     - name: banner-message-text
+      become: true
       ansible.builtin.lineinfile:
+        line: 'You are accessing a U.S. Government (USG) Information System (IS) that is
+          provided for SG-authorized use only. By using this IS (which includes any device
+          attached to this IS), you consent to the following conditions: -The USG routinely
+          intercepts and monitors communications on this IS for purposes including, but
+          not limited to, penetration testing, COMSEC monitoring, network operations and
+          defense, personnel misconduct (PM), law enforcement (LE), and counterintelligence
+          (CI) investigations. -At any time, the USG may inspect and seize data stored on
+          this IS. -Communications using, or data stored on, this IS are not private, are
+          subject to routine monitoring, interception, and search, and may be disclosed
+          or used for any USG-authorized purpose. -This IS includes security measures (e.g.,
+          authentication and access controls) to protect USG interests--not for your personal
+          benefit or privacy. -Notwithstanding the above, using this IS does not constitute
+          consent to PM, LE or CI investigative searching or monitoring of the content of
+          privileged communications, or work product, related to personal representation
+          or services by attorneys, psychotherapists, or clergy, and their assistants. Such
+          communications and work product are private and confidential. See User Agreement
+          for details'
+        mode: 448
+        path: "/etc/issue"
 
     - name: Restart ssh
+      become: true
       ansible.builtin.service:
+        name: ssh.service
+        state: reloaded
 
     - name: Ensure NTP package is installed
+      become: true
       ansible.builtin.package:
+        name: ntp
+        state: present
 
     - name: Disable chrony if it is running but ntp is enabled
+      become: true
       ansible.builtin.service:
+        name: chrony
+        state: stopped
 
     - name: Ensure IPv6 status /Checking IPv6 module status
+      become: true
       ansible.builtin.iptables:
+        flush: true
 
     - name: Install AIDE
+      become: true
       ansible.builtin.package:
+        name: aide
+        state: present

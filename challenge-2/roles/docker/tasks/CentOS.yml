@@ -1,0 +1,6 @@
+- name: Add the Docker yum repository
+  ansible.builtin.yum_repository:
+    name: docker-stable
+    description: Docker Stable
+    baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
+    gpgkey: "https://download.docker.com/linux/centos/gpg"

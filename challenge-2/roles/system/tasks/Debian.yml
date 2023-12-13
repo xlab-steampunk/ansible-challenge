@@ -1,0 +1,26 @@
+- name: Install base system packages (Debian)
+  ansible.builtin.package:
+    name: "{{ packages }}"
+    state: present
+
+- name: Make sure ufw is started
+  ansible.builtin.service:
+    name: ufw
+    state: started
+    enabled: true
+
+- name: Blacklist everything incoming
+  community.general.ufw:
+    state: enabled
+    direction: incoming
+    default: deny
+
+- name: Whitelist services (Debian)
+  community.general.ufw:
+    rule: allow
+    to_port: "{{ item }}"
+    proto: tcp
+  loop:
+    - 22
+    - 80
+    - 443

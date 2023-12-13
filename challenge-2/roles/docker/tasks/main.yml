@@ -1,56 +1,30 @@
 ---
-- name: Run distro-specific tasks (CentOS)
-  block:
-    - name: Add the Docker yum repository
-      yum_repository:
-        name: docker-stable
-        description: Docker Stable
-        baseurl: "https://download.docker.com/linux/centos/$releasever/$basearch/stable"
-        gpgkey: "https://download.docker.com/linux/centos/gpg"
-  when: ansible_distribution == "CentOS"
-
-- name: Run distro-specific tasks (Debian)
-  block:
-    - name: Install apt prerequisites
-      package:
-        name:
-          - apt-transport-https
-        state: present
-
-    - name: Add the Docker apt key
-      apt_key:
-        url: "https://download.docker.com/linux/debian/gpg"
-        state: present
-
-    - name: Add the Docker apt repository
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/debian {{ ansible_distribution_release }} stable"
-        state: present
-        update_cache: true
-  when: ansible_distribution == "Debian"
+- name: Include distribution-specific tasks
+  ansible.builtin.include_tasks:
+    file: "{{ ansible_distribution }}.yml"
 
 - name: Install Docker packages
-  package:
+  ansible.builtin.package:
     name:
       - docker-ce
     state: present
 
 - name: Create the Docker volume base directory
-  file:
+  ansible.builtin.file:
     path: "{{ docker_data_dir }}"
     mode: u=rwx,g=rx,o=rx
     state: directory
     follow: false
 
 - name: Ensure the docker config directory exists
-  file:
+  ansible.builtin.file:
     path: /etc/docker/
     mode: u=rwx,g=rx,o=rx
     state: directory
     follow: false
 
 - name: Configure dockerd
-  copy:
+  ansible.builtin.copy:
     # language=json
     content: |
       {
@@ -62,18 +36,18 @@
   register: dockerd_config
 
 - name: Enable the Docker daemon
-  service:
+  ansible.builtin.service:
     name: docker
     enabled: true
 
 - name: Start the Docker daemon
-  service:
+  ansible.builtin.service:
     name: docker
     state: started
   register: dockerd_started
 
 - name: Restart the Docker daemon
-  service:
+  ansible.builtin.service:
     name: docker
     state: restarted
   when: dockerd_config is changed and dockerd_started is not changed

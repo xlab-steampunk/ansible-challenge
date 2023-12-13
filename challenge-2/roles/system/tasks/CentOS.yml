@@ -1,0 +1,30 @@
+- name: Use epel
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+
+- name: Install base system packages (CentOS)
+  ansible.builtin.package:
+    name: "{{ packages }}"
+    state: present
+
+- name: Make sure firewalld is started
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: Whitelist services (CentOS)
+  ansible.posix.firewalld:
+    service: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop:
+    - ssh
+    - http
+    - https
+
+- name: Disable selinux  # sorry
+  ansible.posix.selinux:
+    state: disabled

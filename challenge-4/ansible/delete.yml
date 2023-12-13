@@ -4,12 +4,25 @@
   vars_files:
     - vars.yml
   tasks:
-    # Run the equivalent of the 'terraform destroy' command.
-    # Use and specify variables originating from vars.yml (also be careful keep them out of any logs).
-    # Save the task output to the terraform_result variable.
     - name: Destroy all remote objects managed by Terraform configuration
       cloud.terraform.terraform:
+        project_path: "{{ tf_project_path }}"
+        state: absent
+        force_init: true
+        variables:
+          vm_name: "{{ vm_name }}"
+          vm_image_name: "{{ vm_image_name }}"
+          vm_flavor_name: "{{ vm_flavor_name }}"
+          vm_key_pair: "{{ vm_key_pair }}"
+          vm_security_group: "{{ vm_security_group }}"
+          vm_network: "{{ vm_network }}"
+          vm_ssh_key_file: "{{ vm_ssh_key_file }}"
+          vm_ssh_user: "{{ vm_ssh_user }}"
+      no_log: true
+      register: terraform_result
+      check_mode: false
 
-    # Check that Terraform output value holding the IP address is not defined anymore.
     - name: Assert that Terraform output value is undefined
       ansible.builtin.assert:
+        that:
+          - terraform_result.outputs.vm_ip_address.value is undefined
