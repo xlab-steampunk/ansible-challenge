@@ -41,7 +41,7 @@ Make sure that you have installed all the
 [general prerequisites](../README.md#prerequisites).
 
 The challenge requires upgrading to Ansible 2.14.
-You can tell Steampunk Spotter to act is you are scanning against Ansible
+You can tell Steampunk Spotter to act as if you are scanning against Ansible
 2.14 regardless of the version installed:
 
 ```shell

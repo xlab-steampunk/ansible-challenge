@@ -45,7 +45,8 @@ Make sure that you have installed all the
 [general prerequisites](../README.md#prerequisites).
 
 The challenge requires Ansible 2.15.
-You can tell Steampunk Spotter to act is you are scanning against Ansible 2.15.
+You can tell Steampunk Spotter to act as if you are scanning against Ansible
+2.15.
 
 ```shell
 spotter scan --project-id <project-id> --ansible-version 2.15 playbook.yml
